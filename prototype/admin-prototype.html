@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园外卖聚合平台 - 后台管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #000000d9;
+        }
+
+        /* 登录页样式 */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 400px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #262626;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #262626;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        /* 主布局样式 */
+        .main-layout {
+            display: none;
+        }
+
+        .main-layout.active {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: #001529;
+            color: white;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 24px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .menu-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: background 0.3s;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .menu-item:hover {
+            background: #112240;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: #1890ff;
+            color: white;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* 页面内容样式 */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            background: white;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .select {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #73d13d;
+        }
+
+        .btn-danger {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff7875;
+        }
+
+        .btn-default {
+            background: white;
+            border: 1px solid #d9d9d9;
+            color: #000000d9;
+        }
+
+        .btn-default:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+
+        /* 表格样式 */
+        .table-container {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #fafafa;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            font-weight: 600;
+            color: #000000d9;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+
+        .status-online {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-offline {
+            background: #fff2e8;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* 分页 */
+        .pagination {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 表单样式 */
+        .form-card {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            max-width: 800px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-group-full {
+            margin-bottom: 20px;
+        }
+
+        .required {
+            color: #ff4d4f;
+        }
+
+        textarea.form-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .platform-links {
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+
+        .link-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .link-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .btn-add-link {
+            margin-top: 12px;
+            background: #f0f0f0;
+            border: 1px dashed #d9d9d9;
+        }
+
+        .btn-add-link:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 4px;
+            padding: 24px;
+            min-width: 400px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1890ff;
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            color: #8c8c8c;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页 -->
+    <div class="login-page" id="loginPage">
+        <div class="login-card">
+            <h2 class="login-title">校园外卖聚合平台</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary">登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 主布局 -->
+    <div class="main-layout" id="mainLayout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="logo">外卖管理平台</div>
+            <div class="menu-item active" data-page="shops">商家管理</div>
+            <div class="menu-item" data-page="categories">分类管理</div>
+            <div class="menu-item" data-page="recommend">每日推荐</div>
+            <div class="menu-item" data-page="ratings">评分统计</div>
+            <div class="menu-item" data-page="logs">操作日志</div>
+        </div>
+
+        <!-- 内容区 -->
+        <div class="content-area">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="header-title" id="headerTitle">商家管理</div>
+                <div class="user-info">
+                    <span>管理员</span>
+                    <button class="btn btn-default btn-sm" onclick="logout()">退出</button>
+                </div>
+            </div>
+
+            <!-- 主内容 -->
+            <div class="main-content">
+                <!-- 商家列表页 -->
+                <div class="page active" id="pageShops">
+                    <div class="toolbar">
+                        <input type="text" class="search-input" placeholder="搜索商家名称" id="shopSearch">
+                        <select class="select" id="shopPlatform">
+                            <option value="">全部平台</option>
+                            <option value="MEITUAN">美团</option>
+                            <option value="ELEME">饿了么</option>
+                            <option value="JD">京东</option>
+                            <option value="MINIPROGRAM_SELF">小程序自营</option>
+                            <option value="OTHER">其他</option>
+                        </select>
+                        <select class="select" id="shopCategory">
+                            <option value="">全部分类</option>
+                            <option value="1">快餐</option>
+                            <option value="2">奶茶</option>
+                            <option value="3">正餐</option>
+                            <option value="4">夜宵</option>
+                        </select>
+                        <select class="select" id="shopStatus">
+                            <option value="">全部状态</option>
+                            <option value="1">上架</option>
+                            <option value="0">下架</option>
+                        </select>
+                        <button class="btn btn-success" onclick="showShopForm()">新增商家</button>
+                        <button class="btn btn-default">导出</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>ID</th>
+                                    <th>商家名称</th>
+                                    <th>所属平台</th>
+                                    <th>分类</th>
+                                    <th>封面图</th>
+                                    <th>起送价</th>
+                                    <th>评分</th>
+                                    <th>状态</th>
+                                    <th>排序权重</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shopTableBody">
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>1</td>
+                                    <td>校内麻辣烫</td>
+                                    <td>美团、饿了么</td>
+                                    <td>快餐</td>
+                                    <td><img src="https://via.placeholder.com/50" style="width:50px;height:50px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>¥15.00</td>
+                                    <td>4.6 (123人)</td>
+                                    <td><span class="status-badge status-online">上架</span></td>
+                                    <td>10</td>
+                                    <td>2025-02-10 10:30</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editShop(1)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleShopStatus(1, 0)">下架</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteShop(1)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>2</td>
+                                    <td>校园奶茶店</td>
+                                    <td>小程序自营</td>
+                                    <td>奶茶</td>
+                                    <td><img src="https://via.placeholder.com/50" style="width:50px;height:50px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>¥10.00</td>
+                                    <td>4.8 (89人)</td>
+                                    <td><span class="status-badge status-online">上架</span></td>
+                                    <td>5</td>
+                                    <td>2025-02-09 15:20</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editShop(2)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleShopStatus(2, 0)">下架</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteShop(2)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>3</td>
+                                    <td>夜宵烧烤摊</td>
+                                    <td>美团</td>
+                                    <td>夜宵</td>
+                                    <td><img src="https://via.placeholder.com/50" style="width:50px;height:50px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>¥20.00</td>
+                                    <td>4.2 (45人)</td>
+                                    <td><span class="status-badge status-offline">下架</span></td>
+                                    <td>0</td>
+                                    <td>2025-02-08 20:15</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editShop(3)">编辑</button>
+                                            <button class="btn btn-success btn-sm" onclick="toggleShopStatus(3, 1)">上架</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteShop(3)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button disabled>上一页</button>
+                        <span>第 1 页，共 1 页</span>
+                        <button disabled>下一页</button>
+                    </div>
+                </div>
+
+                <!-- 分类管理页 -->
+                <div class="page" id="pageCategories">
+                    <div class="toolbar">
+                        <button class="btn btn-success" onclick="showCategoryForm()">新增分类</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Logo</th>
+                                    <th>分类名称</th>
+                                    <th>排序值</th>
+                                    <th>状态</th>
+                                    <th>关联商家数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><img src="https://via.placeholder.com/40/07c160/ffffff?text=快" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>快餐</td>
+                                    <td>10</td>
+                                    <td><span class="status-badge status-online">启用</span></td>
+                                    <td>15</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editCategory(1)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleCategoryStatus(1, 0)">禁用</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(1)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><img src="https://via.placeholder.com/40/ff6b35/ffffff?text=奶" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>奶茶</td>
+                                    <td>8</td>
+                                    <td><span class="status-badge status-online">启用</span></td>
+                                    <td>8</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editCategory(2)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleCategoryStatus(2, 0)">禁用</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(2)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td><img src="https://via.placeholder.com/40/ff9500/ffffff?text=正" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>正餐</td>
+                                    <td>6</td>
+                                    <td><span class="status-badge status-online">启用</span></td>
+                                    <td>12</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editCategory(3)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleCategoryStatus(3, 0)">禁用</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(3)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td><img src="https://via.placeholder.com/40/9c27b0/ffffff?text=夜" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
+                                    <td>夜宵</td>
+                                    <td>4</td>
+                                    <td><span class="status-badge status-online">启用</span></td>
+                                    <td>5</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-default btn-sm" onclick="editCategory(4)">编辑</button>
+                                            <button class="btn btn-default btn-sm" onclick="toggleCategoryStatus(4, 0)">禁用</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(4)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 每日推荐页 -->
+                <div class="page" id="pageRecommend">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">今日推荐模式</div>
+                            <div class="stat-value" id="recommendMode">手动</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">推荐商家数</div>
+                            <div class="stat-value" id="recommendCount">4</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">今日日期</div>
+                            <div class="stat-value" style="font-size:18px;" id="todayDate">2025-02-11</div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3 style="margin-bottom:20px;">推荐配置</h3>
+                        <div class="form-group-full">
+                            <label class="form-label">推荐模式 <span class="required">*</span></label>
+                            <div style="margin-top:8px;">
+                                <label style="margin-right:20px;">
+                                    <input type="radio" name="recommendMode" value="MANUAL" checked> 手动设置
+                                </label>
+                                <label>
+                                    <input type="radio" name="recommendMode" value="RANDOM"> 随机推荐
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="manualConfig" style="margin-top:20px;">
+                            <label class="form-label">选择推荐商家 <span class="required">*</span></label>
+                            <div style="margin-top:8px;padding:12px;background:#fafafa;border-radius:4px;">
+                                <div style="margin-bottom:8px;">
+                                    <input type="checkbox" id="shop1"> <label for="shop1">校内麻辣烫</label>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <input type="checkbox" id="shop2"> <label for="shop2">校园奶茶店</label>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <input type="checkbox" id="shop3"> <label for="shop3">夜宵烧烤摊</label>
+                                </div>
+                                <button class="btn btn-default btn-sm" style="margin-top:8px;">选择更多商家</button>
+                            </div>
+                        </div>
+
+                        <div id="randomConfig" style="margin-top:20px;display:none;">
+                            <label class="form-label">每日推荐数量 <span class="required">*</span></label>
+                            <input type="number" class="form-input" value="4" min="3" max="10" style="width:200px;margin-top:8px;">
+                            <div style="margin-top:8px;color:#8c8c8c;font-size:12px;">建议范围：3-10，默认4</div>
+                        </div>
+
+                        <div style="margin-top:24px;">
+                            <button class="btn btn-primary" onclick="saveRecommendConfig()">保存配置</button>
+                            <button class="btn btn-default" style="margin-left:12px;">预览效果</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 评分统计页 -->
+                <div class="page" id="pageRatings">
+                    <div class="toolbar">
+                        <select class="select">
+                            <option value="">全部分类</option>
+                            <option value="1">快餐</option>
+                            <option value="2">奶茶</option>
+                            <option value="3">正餐</option>
+                            <option value="4">夜宵</option>
+                        </select>
+                        <input type="text" class="search-input" placeholder="搜索商家名称">
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>商家ID</th>
+                                    <th>商家名称</th>
+                                    <th>分类</th>
+                                    <th>平均评分</th>
+                                    <th>评分人数</th>
+                                    <th>最近评分时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>校内麻辣烫</td>
+                                    <td>快餐</td>
+                                    <td><strong style="color:#fa8c16;">4.6</strong> ⭐</td>
+                                    <td>123</td>
+                                    <td>2025-02-10 09:30</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>校园奶茶店</td>
+                                    <td>奶茶</td>
+                                    <td><strong style="color:#fa8c16;">4.8</strong> ⭐</td>
+                                    <td>89</td>
+                                    <td>2025-02-09 14:20</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>夜宵烧烤摊</td>
+                                    <td>夜宵</td>
+                                    <td><strong style="color:#fa8c16;">4.2</strong> ⭐</td>
+                                    <td>45</td>
+                                    <td>2025-02-08 19:15</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 操作日志页 -->
+                <div class="page" id="pageLogs">
+                    <div class="toolbar">
+                        <select class="select">
+                            <option value="">全部操作类型</option>
+                            <option value="SHOP_CREATE">商家创建</option>
+                            <option value="SHOP_UPDATE">商家编辑</option>
+                            <option value="SHOP_DELETE">商家删除</option>
+                            <option value="SHOP_STATUS">商家上下架</option>
+                            <option value="CATEGORY">分类操作</option>
+                            <option value="RECOMMEND">推荐配置</option>
+                        </select>
+                        <input type="date" class="form-input" style="width:150px;">
+                        <span style="margin:0 8px;">至</span>
+                        <input type="date" class="form-input" style="width:150px;">
+                        <button class="btn btn-primary">查询</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>操作时间</th>
+                                    <th>操作人</th>
+                                    <th>操作类型</th>
+                                    <th>目标对象</th>
+                                    <th>操作IP</th>
+                                    <th>详情</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-02-10 10:30:25</td>
+                                    <td>admin</td>
+                                    <td>商家编辑</td>
+                                    <td>商家：校内麻辣烫 (ID:1)</td>
+                                    <td>192.168.1.100</td>
+                                    <td><button class="btn btn-default btn-sm">查看</button></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-02-10 09:15:10</td>
+                                    <td>admin</td>
+                                    <td>商家上架</td>
+                                    <td>商家：校园奶茶店 (ID:2)</td>
+                                    <td>192.168.1.100</td>
+                                    <td><button class="btn btn-default btn-sm">查看</button></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-02-09 15:20:33</td>
+                                    <td>admin</td>
+                                    <td>分类编辑</td>
+                                    <td>分类：快餐 (ID:1)</td>
+                                    <td>192.168.1.100</td>
+                                    <td><button class="btn btn-default btn-sm">查看</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商家表单模态框 -->
+    <div class="modal" id="shopModal">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header" id="shopModalTitle">新增商家</div>
+            <form id="shopForm">
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">商家名称 <span class="required">*</span></label>
+                            <input type="text" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">分类 <span class="required">*</span></label>
+                            <select class="form-input" required>
+                                <option value="">请选择</option>
+                                <option value="1">快餐</option>
+                                <option value="2">奶茶</option>
+                                <option value="3">正餐</option>
+                                <option value="4">夜宵</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="form-label">商家介绍</label>
+                    <input type="text" class="form-input" placeholder="用于首页小字展示，建议20-50字" maxlength="200">
+                    <div style="margin-top:4px;color:#8c8c8c;font-size:12px;">选填，用于小程序端首页展示商家简介</div>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="form-label">封面图</label>
+                    <input type="file" accept="image/*" style="margin-top:8px;">
+                    <div style="margin-top:8px;color:#8c8c8c;font-size:12px;">支持 jpg/png，单张 ≤2MB</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">起送价（元）</label>
+                            <input type="number" class="form-input" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">配送费说明</label>
+                            <input type="text" class="form-input" placeholder="如：配送费约3元">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">营业时间</label>
+                            <input type="text" class="form-input" placeholder="如：10:00-22:00">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">配送范围</label>
+                            <input type="text" class="form-input" placeholder="如：校园内配送">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="form-label">平台跳转链接 <span class="required">*</span></label>
+                    <div class="platform-links" id="platformLinks">
+                        <div class="link-item">
+                            <select class="form-input" style="width:150px;">
+                                <option value="MEITUAN">美团</option>
+                                <option value="ELEME">饿了么</option>
+                                <option value="JD">京东</option>
+                                <option value="MINIPROGRAM_SELF">小程序自营</option>
+                                <option value="OTHER">其他</option>
+                            </select>
+                            <input type="text" class="form-input" placeholder="H5 URL 或小程序 path" style="flex:1;">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeLink(this)">删除</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-add-link" onclick="addPlatformLink()">+ 添加平台链接</button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">排序权重</label>
+                            <input type="number" class="form-input" value="0">
+                            <div style="margin-top:4px;color:#8c8c8c;font-size:12px;">数值越大越靠前</div>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group-full">
+                            <label class="form-label">状态</label>
+                            <select class="form-input">
+                                <option value="0">下架</option>
+                                <option value="1">上架</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="form-label">备注（仅后台可见）</label>
+                    <textarea class="form-input"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" onclick="closeShopModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 分类表单模态框 -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header" id="categoryModalTitle">新增分类</div>
+            <form id="categoryForm">
+                <div class="form-group-full">
+                    <label class="form-label">分类名称 <span class="required">*</span></label>
+                    <input type="text" class="form-input" required>
+                </div>
+                <div class="form-group-full">
+                    <label class="form-label">分类 Logo</label>
+                    <input type="file" accept="image/*" style="margin-top:8px;">
+                    <div style="margin-top:8px;color:#8c8c8c;font-size:12px;">支持 jpg/png，单张 ≤2MB，用于小程序端展示</div>
+                </div>
+                <div class="form-group-full">
+                    <label class="form-label">排序值 <span class="required">*</span></label>
+                    <input type="number" class="form-input" value="0" required>
+                    <div style="margin-top:4px;color:#8c8c8c;font-size:12px;">数值越大越靠前</div>
+                </div>
+                <div class="form-group-full">
+                    <label class="form-label">状态</label>
+                    <select class="form-input">
+                        <option value="1">启用</option>
+                        <option value="0">禁用</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" onclick="closeCategoryModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 登录
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainLayout').classList.add('active');
+        });
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                document.getElementById('mainLayout').classList.remove('active');
+                document.getElementById('loginPage').style.display = 'flex';
+            }
+        }
+
+        // 菜单切换
+        const menuItems = document.querySelectorAll('.menu-item');
+        const pages = document.querySelectorAll('.page');
+        const pageTitles = {
+            'shops': '商家管理',
+            'categories': '分类管理',
+            'recommend': '每日推荐',
+            'ratings': '评分统计',
+            'logs': '操作日志'
+        };
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const pageId = this.getAttribute('data-page');
+                
+                // 更新菜单状态
+                menuItems.forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 更新页面显示
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById('page' + pageId.charAt(0).toUpperCase() + pageId.slice(1)).classList.add('active');
+                
+                // 更新标题
+                document.getElementById('headerTitle').textContent = pageTitles[pageId];
+            });
+        });
+
+        // 商家相关函数
+        function showShopForm() {
+            document.getElementById('shopModalTitle').textContent = '新增商家';
+            document.getElementById('shopModal').classList.add('active');
+        }
+
+        function editShop(id) {
+            document.getElementById('shopModalTitle').textContent = '编辑商家';
+            document.getElementById('shopModal').classList.add('active');
+        }
+
+        function closeShopModal() {
+            document.getElementById('shopModal').classList.remove('active');
+        }
+
+        function toggleShopStatus(id, status) {
+            const action = status === 1 ? '上架' : '下架';
+            if (confirm(`确定要${action}该商家吗？`)) {
+                alert(`${action}成功！`);
+            }
+        }
+
+        function deleteShop(id) {
+            if (confirm('确定要删除该商家吗？删除后数据将保留但不再展示。')) {
+                alert('删除成功！');
+            }
+        }
+
+        function addPlatformLink() {
+            const container = document.getElementById('platformLinks');
+            const newLink = document.createElement('div');
+            newLink.className = 'link-item';
+            newLink.innerHTML = `
+                <select class="form-input" style="width:150px;">
+                    <option value="MEITUAN">美团</option>
+                    <option value="ELEME">饿了么</option>
+                    <option value="JD">京东</option>
+                    <option value="MINIPROGRAM_SELF">小程序自营</option>
+                    <option value="OTHER">其他</option>
+                </select>
+                <input type="text" class="form-input" placeholder="H5 URL 或小程序 path" style="flex:1;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeLink(this)">删除</button>
+            `;
+            container.appendChild(newLink);
+        }
+
+        function removeLink(btn) {
+            btn.parentElement.remove();
+        }
+
+        document.getElementById('shopForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('保存成功！');
+            closeShopModal();
+        });
+
+        // 分类相关函数
+        function showCategoryForm() {
+            document.getElementById('categoryModalTitle').textContent = '新增分类';
+            document.getElementById('categoryModal').classList.add('active');
+        }
+
+        function editCategory(id) {
+            document.getElementById('categoryModalTitle').textContent = '编辑分类';
+            document.getElementById('categoryModal').classList.add('active');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+        }
+
+        function toggleCategoryStatus(id, status) {
+            const action = status === 1 ? '启用' : '禁用';
+            if (confirm(`确定要${action}该分类吗？`)) {
+                alert(`${action}成功！`);
+            }
+        }
+
+        function deleteCategory(id) {
+            if (confirm('确定要删除该分类吗？如果该分类被商家引用，将无法删除。')) {
+                alert('删除失败：该分类被 15 个商家引用，请先迁移商家后再删除。');
+            }
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('保存成功！');
+            closeCategoryModal();
+        });
+
+        // 每日推荐相关
+        document.querySelectorAll('input[name="recommendMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'MANUAL') {
+                    document.getElementById('manualConfig').style.display = 'block';
+                    document.getElementById('randomConfig').style.display = 'none';
+                } else {
+                    document.getElementById('manualConfig').style.display = 'none';
+                    document.getElementById('randomConfig').style.display = 'block';
+                }
+            });
+        });
+
+        function saveRecommendConfig() {
+            const mode = document.querySelector('input[name="recommendMode"]:checked').value;
+            alert('推荐配置保存成功！');
+        }
+
+        // 设置今日日期
+        document.getElementById('todayDate').textContent = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>

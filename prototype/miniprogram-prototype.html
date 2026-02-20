@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>校园外卖聚合平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+            padding-bottom: 60px; /* 为底部tabbar留空间 */
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: #07c160;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 500;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-back {
+            position: absolute;
+            left: 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            padding-top: 44px;
+            min-height: 100vh;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 底部TabBar */
+        .tabbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: white;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .tab-item.active {
+            color: #07c160;
+        }
+
+        .tab-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        /* 首页样式 */
+        .search-bar {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+        }
+
+        .search-box {
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .search-box::before {
+            content: '🔍';
+            margin-right: 8px;
+        }
+
+        .section-title {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* 每日推荐区域 */
+        .recommend-section {
+            background: white;
+            margin-bottom: 8px;
+            padding-bottom: 15px;
+        }
+
+        .recommend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 15px;
+        }
+
+        .recommend-item {
+            background: #fafafa;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .recommend-cover {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .recommend-info {
+            padding: 10px;
+        }
+
+        .recommend-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recommend-intro {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recommend-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .recommend-price {
+            color: #ff6b35;
+            font-weight: 500;
+        }
+
+        .recommend-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #ff9500;
+        }
+
+        /* 分类标签 */
+        .category-tags {
+            background: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .category-tag {
+            padding: 6px 16px;
+            background: #f5f5f5;
+            border-radius: 16px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .category-tag.active {
+            background: #07c160;
+            color: white;
+        }
+
+        /* 商家列表 */
+        .shop-list {
+            background: white;
+        }
+
+        .shop-item {
+            display: flex;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-cover {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .shop-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .shop-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .shop-intro {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .shop-platforms {
+            font-size: 12px;
+            color: #07c160;
+            margin-bottom: 6px;
+        }
+
+        .shop-meta {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .shop-rating {
+            color: #ff9500;
+            display: flex;
+            align-items: center;
+        }
+
+        .shop-price {
+            color: #ff6b35;
+            font-weight: 500;
+        }
+
+        .shop-favorite {
+            margin-left: auto;
+            font-size: 20px;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .shop-favorite.active {
+            color: #ff6b6b;
+        }
+
+        /* 商家详情页 */
+        .detail-header {
+            background: white;
+            padding: 20px 15px;
+            margin-bottom: 8px;
+        }
+
+        .detail-cover {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .detail-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .detail-platforms {
+            font-size: 14px;
+            color: #07c160;
+            margin-bottom: 12px;
+        }
+
+        .detail-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .rating-score {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff9500;
+        }
+
+        .rating-count {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .detail-info {
+            background: white;
+            padding: 15px;
+            margin-bottom: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #999;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .rating-section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 8px;
+        }
+
+        .rating-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            font-size: 32px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #ff9500;
+        }
+
+        .action-buttons {
+            padding: 15px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #07c160;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e5e5e5;
+        }
+
+        .btn-favorite {
+            width: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: white;
+            border: 1px solid #e5e5e5;
+        }
+
+        .btn-favorite.active {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .disclaimer {
+            background: white;
+            padding: 15px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        /* 我的收藏页 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* 登录页 */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .login-logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .login-desc {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 14px;
+            background: white;
+            color: #07c160;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .login-agreement {
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.8;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* 加载更多 */
+        .load-more {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 下架标签 */
+        .offline-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #fff3e0;
+            color: #f57c00;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页 -->
+    <div class="login-page" id="loginPage">
+        <div class="login-logo">🍔</div>
+        <div class="login-title">校园外卖聚合平台</div>
+        <div class="login-desc">汇聚校园美食，一键直达下单</div>
+        <button class="login-btn" onclick="login()">微信快速登录</button>
+        <div class="login-agreement">
+            登录即表示同意《用户协议》<br>
+            本平台仅提供信息聚合与跳转，不参与交易
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div id="app" style="display:none;">
+        <!-- 顶部导航栏 -->
+        <div class="navbar">
+            <span class="navbar-back" id="navBack" onclick="goBack()" style="display:none;">‹</span>
+            <span id="navTitle">校园外卖</span>
+        </div>
+
+        <!-- 首页 -->
+        <div class="page active" id="pageHome">
+            <div class="search-bar">
+                <div class="search-box" onclick="showSearch()">搜索商家名称</div>
+            </div>
+
+            <!-- 每日推荐 -->
+            <div class="recommend-section">
+                <div class="section-title">每日推荐</div>
+                <div class="recommend-grid">
+                    <div class="recommend-item" onclick="goToDetail(1)">
+                        <img src="https://via.placeholder.com/200x120/07c160/ffffff?text=校内麻辣烫" class="recommend-cover" alt="商家封面">
+                        <div class="recommend-info">
+                            <div class="recommend-name">校内麻辣烫</div>
+                            <div class="recommend-intro">正宗川味麻辣烫，食材新鲜，口味地道</div>
+                            <div class="recommend-meta">
+                                <span class="recommend-price">¥15起</span>
+                                <span style="margin:0 6px;">|</span>
+                                <span>配送费¥3</span>
+                            </div>
+                            <div class="recommend-rating">⭐ 4.6 (123人)</div>
+                        </div>
+                    </div>
+                    <div class="recommend-item" onclick="goToDetail(2)">
+                        <img src="https://via.placeholder.com/200x120/ff6b35/ffffff?text=校园奶茶店" class="recommend-cover" alt="商家封面">
+                        <div class="recommend-info">
+                            <div class="recommend-name">校园奶茶店</div>
+                            <div class="recommend-intro">新鲜水果，现做现卖，健康美味</div>
+                            <div class="recommend-meta">
+                                <span class="recommend-price">¥10起</span>
+                                <span style="margin:0 6px;">|</span>
+                                <span>免配送费</span>
+                            </div>
+                            <div class="recommend-rating">⭐ 4.8 (89人)</div>
+                        </div>
+                    </div>
+                    <div class="recommend-item" onclick="goToDetail(3)">
+                        <img src="https://via.placeholder.com/200x120/ff9500/ffffff?text=正餐食堂" class="recommend-cover" alt="商家封面">
+                        <div class="recommend-info">
+                            <div class="recommend-name">正餐食堂</div>
+                            <div class="recommend-intro">营养搭配，家常味道，分量足</div>
+                            <div class="recommend-meta">
+                                <span class="recommend-price">¥20起</span>
+                                <span style="margin:0 6px;">|</span>
+                                <span>配送费¥5</span>
+                            </div>
+                            <div class="recommend-rating">⭐ 4.5 (67人)</div>
+                        </div>
+                    </div>
+                    <div class="recommend-item" onclick="goToDetail(4)">
+                        <img src="https://via.placeholder.com/200x120/9c27b0/ffffff?text=夜宵烧烤" class="recommend-cover" alt="商家封面">
+                        <div class="recommend-info">
+                            <div class="recommend-name">夜宵烧烤摊</div>
+                            <div class="recommend-intro">炭火烧烤，香气四溢，夜宵首选</div>
+                            <div class="recommend-meta">
+                                <span class="recommend-price">¥25起</span>
+                                <span style="margin:0 6px;">|</span>
+                                <span>配送费¥6</span>
+                            </div>
+                            <div class="recommend-rating">⭐ 4.2 (45人)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分类标签 -->
+            <div class="category-tags">
+                <div class="category-tag active" onclick="selectCategory('')">全部</div>
+                <div class="category-tag" onclick="selectCategory(1)">快餐</div>
+                <div class="category-tag" onclick="selectCategory(2)">奶茶</div>
+                <div class="category-tag" onclick="selectCategory(3)">正餐</div>
+                <div class="category-tag" onclick="selectCategory(4)">夜宵</div>
+            </div>
+
+            <!-- 商家列表 -->
+            <div class="shop-list">
+                <div class="section-title">全部商家</div>
+                <div class="shop-item" onclick="goToDetail(1)">
+                    <img src="https://via.placeholder.com/80x80/07c160/ffffff?text=麻辣烫" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">校内麻辣烫</div>
+                        <div class="shop-intro">正宗川味麻辣烫，食材新鲜，口味地道</div>
+                        <div class="shop-platforms">美团 · 饿了么</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.6 (123人)</span>
+                            <span class="shop-price">¥15起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite active" onclick="event.stopPropagation(); toggleFavorite(1)">❤️</div>
+                </div>
+                <div class="shop-item" onclick="goToDetail(2)">
+                    <img src="https://via.placeholder.com/80x80/ff6b35/ffffff?text=奶茶" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">校园奶茶店</div>
+                        <div class="shop-intro">新鲜水果，现做现卖，健康美味</div>
+                        <div class="shop-platforms">小程序自营</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.8 (89人)</span>
+                            <span class="shop-price">¥10起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite" onclick="event.stopPropagation(); toggleFavorite(2)">🤍</div>
+                </div>
+                <div class="shop-item" onclick="goToDetail(3)">
+                    <img src="https://via.placeholder.com/80x80/ff9500/ffffff?text=食堂" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">正餐食堂</div>
+                        <div class="shop-intro">营养搭配，家常味道，分量足</div>
+                        <div class="shop-platforms">美团</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.5 (67人)</span>
+                            <span class="shop-price">¥20起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite" onclick="event.stopPropagation(); toggleFavorite(3)">🤍</div>
+                </div>
+                <div class="shop-item" onclick="goToDetail(4)">
+                    <img src="https://via.placeholder.com/80x80/9c27b0/ffffff?text=烧烤" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">夜宵烧烤摊</div>
+                        <div class="shop-intro">炭火烧烤，香气四溢，夜宵首选</div>
+                        <div class="shop-platforms">美团</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.2 (45人)</span>
+                            <span class="shop-price">¥25起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite" onclick="event.stopPropagation(); toggleFavorite(4)">🤍</div>
+                </div>
+            </div>
+
+            <div class="load-more">上拉加载更多</div>
+
+            <div class="disclaimer">
+                ⚠️ 本平台仅提供商家信息聚合与跳转，不参与交易，下单及交易请在对应外卖平台完成。
+            </div>
+        </div>
+
+        <!-- 商家列表页（筛选后） -->
+        <div class="page" id="pageList">
+            <div class="search-bar">
+                <div class="search-box" onclick="showSearch()">搜索商家名称</div>
+            </div>
+
+            <div class="category-tags">
+                <div class="category-tag active" onclick="selectCategory('')">全部</div>
+                <div class="category-tag" onclick="selectCategory(1)">快餐</div>
+                <div class="category-tag" onclick="selectCategory(2)">奶茶</div>
+                <div class="category-tag" onclick="selectCategory(3)">正餐</div>
+                <div class="category-tag" onclick="selectCategory(4)">夜宵</div>
+            </div>
+
+            <div class="shop-list">
+                <div class="shop-item" onclick="goToDetail(1)">
+                    <img src="https://via.placeholder.com/80x80/07c160/ffffff?text=麻辣烫" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">校内麻辣烫</div>
+                        <div class="shop-intro">正宗川味麻辣烫，食材新鲜，口味地道</div>
+                        <div class="shop-platforms">美团 · 饿了么</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.6 (123人)</span>
+                            <span class="shop-price">¥15起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite active" onclick="event.stopPropagation(); toggleFavorite(1)">❤️</div>
+                </div>
+                <!-- 更多商家项... -->
+            </div>
+        </div>
+
+        <!-- 商家详情页 -->
+        <div class="page" id="pageDetail">
+            <div class="detail-header">
+                <img src="https://via.placeholder.com/400x200/07c160/ffffff?text=校内麻辣烫" class="detail-cover" alt="商家封面">
+                <div class="detail-name">校内麻辣烫</div>
+                <div class="detail-platforms">美团 · 饿了么</div>
+                <div class="detail-rating">
+                    <span class="rating-score">4.6</span>
+                    <span>⭐⭐⭐⭐⭐</span>
+                    <span class="rating-count">(123人评价)</span>
+                </div>
+            </div>
+
+            <div class="detail-info">
+                <div class="info-row">
+                    <span class="info-label">分类</span>
+                    <span class="info-value">快餐</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">起送价</span>
+                    <span class="info-value">¥15.00</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">配送费</span>
+                    <span class="info-value">配送费约3元</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">配送范围</span>
+                    <span class="info-value">校园内配送</span>
+                </div>
+            </div>
+
+            <div class="rating-section">
+                <div class="rating-title">为商家评分</div>
+                <div class="rating-stars" id="ratingStars">
+                    <span class="star" data-score="1" onclick="rateShop(1)">☆</span>
+                    <span class="star" data-score="2" onclick="rateShop(2)">☆</span>
+                    <span class="star" data-score="3" onclick="rateShop(3)">☆</span>
+                    <span class="star" data-score="4" onclick="rateShop(4)">☆</span>
+                    <span class="star" data-score="5" onclick="rateShop(5)">☆</span>
+                </div>
+                <div style="font-size: 14px; color: #999;">点击星星进行评分</div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="goToOrder('MEITUAN')">去美团下单</button>
+                <button class="btn btn-primary" onclick="goToOrder('ELEME')">去饿了么下单</button>
+                <button class="btn btn-favorite active" id="detailFavorite" onclick="toggleFavoriteDetail()">❤️</button>
+            </div>
+
+            <div class="disclaimer">
+                ⚠️ 本平台仅提供商家信息聚合与跳转，不参与交易，下单及交易请在对应外卖平台完成。
+            </div>
+        </div>
+
+        <!-- 我的收藏页 -->
+        <div class="page" id="pageFavorites">
+            <div class="shop-list">
+                <div class="section-title">我的收藏</div>
+                <div class="shop-item" onclick="goToDetail(1)">
+                    <img src="https://via.placeholder.com/80x80/07c160/ffffff?text=麻辣烫" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">校内麻辣烫</div>
+                        <div class="shop-intro">正宗川味麻辣烫，食材新鲜，口味地道</div>
+                        <div class="shop-platforms">美团 · 饿了么</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.6 (123人)</span>
+                            <span class="shop-price">¥15起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite active" onclick="event.stopPropagation(); toggleFavorite(1)">❤️</div>
+                </div>
+                <div class="shop-item" onclick="goToDetail(5)">
+                    <img src="https://via.placeholder.com/80x80/999/ffffff?text=已下架" class="shop-cover" alt="商家">
+                    <div class="shop-info">
+                        <div class="shop-name">已下架商家示例 <span class="offline-badge">已下架</span></div>
+                        <div class="shop-intro">示例商家介绍文字</div>
+                        <div class="shop-platforms">美团</div>
+                        <div class="shop-meta">
+                            <span class="shop-rating">⭐ 4.0 (30人)</span>
+                            <span class="shop-price">¥18起</span>
+                        </div>
+                    </div>
+                    <div class="shop-favorite active" onclick="event.stopPropagation(); toggleFavorite(5)">❤️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人中心页 -->
+        <div class="page" id="pageProfile">
+            <div style="background: white; padding: 20px; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: #07c160; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white;">👤</div>
+                    <div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">微信用户</div>
+                        <div style="font-size: 14px; color: #999;">已登录</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; margin-bottom: 8px;">
+                <div style="padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="switchPage('favorites')">
+                    <span>我的收藏</span>
+                    <span style="color: #999;">›</span>
+                </div>
+                <div style="padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                    <span>关于我们</span>
+                    <span style="color: #999;">›</span>
+                </div>
+                <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>用户协议</span>
+                    <span style="color: #999;">›</span>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                ⚠️ 本平台仅提供商家信息聚合与跳转，不参与交易，下单及交易请在对应外卖平台完成。
+            </div>
+        </div>
+
+        <!-- 底部TabBar -->
+        <div class="tabbar">
+            <div class="tab-item active" onclick="switchTab('home')">
+                <div class="tab-icon">🏠</div>
+                <div>首页</div>
+            </div>
+            <div class="tab-item" onclick="switchTab('favorites')">
+                <div class="tab-icon">❤️</div>
+                <div>收藏</div>
+            </div>
+            <div class="tab-item" onclick="switchTab('profile')">
+                <div class="tab-icon">👤</div>
+                <div>我的</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 登录
+        function login() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+        }
+
+        // Tab切换
+        function switchTab(tab) {
+            const tabs = ['home', 'favorites', 'profile'];
+            const pages = {
+                'home': 'pageHome',
+                'favorites': 'pageFavorites',
+                'profile': 'pageProfile'
+            };
+            const titles = {
+                'home': '校园外卖',
+                'favorites': '我的收藏',
+                'profile': '个人中心'
+            };
+
+            // 更新Tab状态
+            document.querySelectorAll('.tab-item').forEach((item, index) => {
+                if (tabs[index] === tab) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // 切换页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pages[tab]).classList.add('active');
+
+            // 更新导航栏标题
+            document.getElementById('navTitle').textContent = titles[tab];
+            document.getElementById('navBack').style.display = 'none';
+        }
+
+        // 页面切换
+        function switchPage(pageId) {
+            const pageMap = {
+                'home': { id: 'pageHome', title: '校园外卖', showBack: false },
+                'list': { id: 'pageList', title: '商家列表', showBack: true },
+                'detail': { id: 'pageDetail', title: '商家详情', showBack: true },
+                'favorites': { id: 'pageFavorites', title: '我的收藏', showBack: true },
+                'profile': { id: 'pageProfile', title: '个人中心', showBack: false }
+            };
+
+            const config = pageMap[pageId];
+            if (!config) return;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(config.id).classList.add('active');
+
+            document.getElementById('navTitle').textContent = config.title;
+            document.getElementById('navBack').style.display = config.showBack ? 'block' : 'none';
+        }
+
+        // 返回
+        function goBack() {
+            switchTab('home');
+        }
+
+        // 跳转到详情
+        function goToDetail(shopId) {
+            switchPage('detail');
+        }
+
+        // 搜索
+        function showSearch() {
+            const keyword = prompt('请输入商家名称');
+            if (keyword) {
+                switchPage('list');
+                // 这里可以触发搜索逻辑
+            }
+        }
+
+        // 选择分类
+        function selectCategory(categoryId) {
+            document.querySelectorAll('.category-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            switchPage('list');
+        }
+
+        // 收藏/取消收藏
+        function toggleFavorite(shopId) {
+            const favorite = event.target;
+            if (favorite.classList.contains('active')) {
+                favorite.classList.remove('active');
+                favorite.textContent = '🤍';
+                alert('已取消收藏');
+            } else {
+                favorite.classList.add('active');
+                favorite.textContent = '❤️';
+                alert('已收藏');
+            }
+        }
+
+        function toggleFavoriteDetail() {
+            const favorite = document.getElementById('detailFavorite');
+            if (favorite.classList.contains('active')) {
+                favorite.classList.remove('active');
+                alert('已取消收藏');
+            } else {
+                favorite.classList.add('active');
+                alert('已收藏');
+            }
+        }
+
+        // 评分
+        let currentRating = 0;
+        function rateShop(score) {
+            currentRating = score;
+            const stars = document.querySelectorAll('.rating-stars .star');
+            stars.forEach((star, index) => {
+                if (index < score) {
+                    star.classList.add('active');
+                    star.textContent = '★';
+                } else {
+                    star.classList.remove('active');
+                    star.textContent = '☆';
+                }
+            });
+            alert(`已评分：${score} 星`);
+        }
+
+        // 去下单
+        function goToOrder(platform) {
+            const platformNames = {
+                'MEITUAN': '美团',
+                'ELEME': '饿了么',
+                'JD': '京东',
+                'MINIPROGRAM_SELF': '小程序自营'
+            };
+            if (confirm(`即将跳转到${platformNames[platform]}平台，是否继续？`)) {
+                alert(`跳转到${platformNames[platform]}（实际开发中会打开web-view或小程序）`);
+            }
+        }
+
+        // 初始化
+        document.getElementById('navBack').style.display = 'none';
+    </script>
+</body>
+</html>

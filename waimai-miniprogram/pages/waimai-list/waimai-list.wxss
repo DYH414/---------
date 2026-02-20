@@ -1,0 +1,93 @@
+.container {
+  padding: 20rpx;
+}
+
+.search-bar {
+  display: flex;
+  margin-bottom: 20rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 60rpx;
+  padding: 0 20rpx;
+  background: #f5f5f5;
+  border-radius: 30rpx;
+  margin-right: 20rpx;
+}
+
+.search-btn {
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 30rpx;
+}
+
+.filter-bar {
+  margin-bottom: 20rpx;
+}
+
+.shop-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-item {
+  display: flex;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.shop-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 10rpx;
+  margin-right: 20rpx;
+}
+
+.shop-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.shop-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.shop-intro {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.shop-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.shop-rating {
+  font-size: 24rpx;
+  color: #ff9900;
+}
+
+.rating-count {
+  color: #999;
+  margin-left: 10rpx;
+}
+
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 24rpx;
+}

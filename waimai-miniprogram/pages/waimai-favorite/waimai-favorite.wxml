@@ -1,0 +1,43 @@
+<view class="container">
+  <view class="header">
+    <text class="title">我的收藏</text>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="favorite-list">
+    <view class="favorite-item" wx:for="{{favoriteList}}" wx:key="shopId">
+      <view class="shop-content" bindtap="goToDetail" data-id="{{item.shopId}}">
+        <image class="shop-image" src="{{item.coverUrl}}" mode="aspectFill"></image>
+        <view class="shop-info">
+          <view class="shop-name">{{item.name}}</view>
+          <view class="shop-intro">{{item.introduction}}</view>
+          <view class="shop-meta">
+            <text class="category">{{item.categoryName}}</text>
+            <text class="price" wx:if="{{item.startingPrice}}">起送¥{{item.startingPrice}}</text>
+          </view>
+          <view class="shop-rating" wx:if="{{item.avgScore}}">
+            <text>⭐ {{item.avgScore}}</text>
+            <text class="rating-count">({{item.ratingCount}})</text>
+          </view>
+          <view class="status-label" wx:if="{{item.statusLabel}}">
+            <text>{{item.statusLabel}}</text>
+          </view>
+        </view>
+      </view>
+      <button class="cancel-btn" bindtap="cancelFavorite" data-id="{{item.shopId}}">取消收藏</button>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{favoriteList.length === 0 && !loading}}">
+    <text>暂无收藏</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  <view class="no-more" wx:if="{{!hasMore && favoriteList.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+</view>

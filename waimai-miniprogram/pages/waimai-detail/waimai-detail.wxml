@@ -1,0 +1,66 @@
+<view class="container" wx:if="{{shopDetail}}">
+  <!-- 商家基本信息 -->
+  <view class="shop-header">
+    <image class="shop-cover" src="{{shopDetail.coverUrl}}" mode="aspectFill"></image>
+    <view class="shop-info">
+      <view class="shop-name">{{shopDetail.name}}</view>
+      <view class="shop-intro">{{shopDetail.introduction}}</view>
+      <view class="shop-meta">
+        <text class="category">{{shopDetail.categoryName}}</text>
+        <text class="price" wx:if="{{shopDetail.startingPrice}}">起送¥{{shopDetail.startingPrice}}</text>
+      </view>
+      <view class="shop-rating" wx:if="{{shopDetail.avgScore}}">
+        <text>⭐ {{shopDetail.avgScore}}</text>
+        <text class="rating-count">({{shopDetail.ratingCount}}人评价)</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 配送信息 -->
+  <view class="delivery-info" wx:if="{{shopDetail.deliveryFeeDesc}}">
+    <text>{{shopDetail.deliveryFeeDesc}}</text>
+  </view>
+
+  <!-- 评分区域 -->
+  <view class="rating-section">
+    <view class="section-title">我的评分</view>
+    <view class="rating-stars">
+      <view 
+        class="star {{userScore >= item ? 'active' : ''}}" 
+        wx:for="{{[1,2,3,4,5]}}" 
+        wx:key="*this"
+        data-score="{{item}}"
+        bindtap="handleRating">
+        ⭐
+      </view>
+    </view>
+  </view>
+
+  <!-- 平台跳转 -->
+  <view class="platform-section" wx:if="{{shopDetail.canOrder}}">
+    <view class="section-title">选择平台下单</view>
+    <view class="platform-list">
+      <button 
+        class="platform-btn" 
+        wx:for="{{shopDetail.platformLinks}}" 
+        wx:key="platform"
+        data-link="{{item}}"
+        data-type="{{item.type}}"
+        bindtap="goToPlatform">
+        去{{item.platform}}下单
+      </button>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <button class="favorite-btn {{favorited ? 'active' : ''}}" bindtap="toggleFavorite">
+      {{favorited ? '已收藏' : '收藏'}}
+    </button>
+  </view>
+
+  <!-- 免责声明 -->
+  <view class="disclaimer">
+    <text>本平台仅提供商家信息聚合与跳转，不参与交易，下单及交易请在对应外卖平台完成。</text>
+  </view>
+</view>
