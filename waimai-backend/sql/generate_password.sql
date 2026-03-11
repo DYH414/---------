@@ -1,0 +1,33 @@
+-- ============================================
+-- 密码生成辅助脚本
+-- 说明：此脚本用于生成管理员密码的hash和salt
+-- 注意：实际使用时应该使用Java代码生成，这里仅作为参考
+-- ============================================
+
+-- 方法：使用Java代码生成密码hash和salt
+-- 
+-- 运行以下Java代码：
+-- 
+-- import com.school.waimai.common.util.PasswordUtil;
+-- 
+-- public class GeneratePassword {
+--     public static void main(String[] args) {
+--         String password = "admin123";  // 默认密码
+--         String salt = PasswordUtil.generateSalt();
+--         String hash = PasswordUtil.hashPassword(password, salt);
+--         
+--         System.out.println("Password: " + password);
+--         System.out.println("Salt: " + salt);
+--         System.out.println("Password Hash: " + hash);
+--         
+--         // 验证密码
+--         boolean isValid = PasswordUtil.verifyPassword(password, salt, hash);
+--         System.out.println("Password Valid: " + isValid);
+--     }
+-- }
+--
+-- 然后将生成的salt和hash替换到init_data.sql中
+
+-- 示例SQL（需要替换YOUR_SALT和YOUR_HASH）：
+-- INSERT INTO `admin_user` (`username`, `password_hash`, `salt`, `status`) VALUES
+-- ('admin', 'YOUR_HASH', 'YOUR_SALT', 1);

@@ -1,0 +1,12 @@
+# IDE (JetBrains / IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

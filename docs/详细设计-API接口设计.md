@@ -538,27 +538,1066 @@
 
 ---
 
+### 4.6 商家批量操作（后台）
+
+#### 4.6.1 批量上架
+
+**接口**：`POST /api/admin/shops/batch-online`
+
+**请求体**：
+
+```json
+{
+  "shopIds": [1, 2, 3] // 商家ID数组
+}
+```
+
+**说明**：批量将商家状态设置为上架。
+
+**响应 `data`**：
+
+```json
+{
+  "successCount": 2,
+  "failCount": 1,
+  "failShopIds": [3] // 失败的商家ID（如已删除、数据不完整等）
+}
+```
+
+#### 4.6.2 批量下架
+
+**接口**：`POST /api/admin/shops/batch-offline`
+
+**请求体**：同批量上架
+
+**响应 `data`**：同批量上架
+
+---
+
+### 4.7 商家导出（后台）
+
+**接口**：`GET /api/admin/shops/export`
+
+**请求参数（Query）**：
+
+- `platform`：平台枚举，可选
+- `categoryId`：分类 ID，可选
+- `status`：状态，可选（1=上架，0=下架）
+- `keyword`：名称关键词，可选
+- `sort`：`updatedAt` / `weight`
+
+**说明**：导出当前筛选条件下的商家列表，返回 Excel 文件。
+
+**响应**：
+
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename="shops_2025-02-10.xlsx"`
+- 文件流
+
+---
+
+### 4.8 分类删除（后台）
+
+**接口**：`DELETE /api/admin/categories/{id}`
+
+**说明**：
+
+- 删除前需检查是否有商家引用该分类
+- 若有商家引用，返回错误提示，禁止删除
+- 若无商家引用，执行逻辑删除
+
+**响应 `data`**：无（返回空对象）
+
+**错误情况**：
+
+- 若分类被商家引用，返回错误码 `ERR_CATEGORY_IN_USE`（3011）
+
+---
+
+### 4.9 管理员账号管理（后台）
+
+#### 4.9.1 管理员列表
+
+**接口**：`GET /api/admin/admin-users`
+
+**请求参数（Query）**：
+
+- `page`、`pageSize`
+- `status`：状态，可选（1=正常，0=禁用）
+- `keyword`：用户名关键词，可选
+
+**响应 `data`**：
+
+```json
+{
+  "total": 10,
+  "page": 1,
+  "pageSize": 10,
+  "list": [
+    {
+      "id": 1,
+      "username": "admin",
+      "status": 1,
+      "lastLoginTime": "2025-02-10 09:00:00",
+      "createTime": "2025-01-01 00:00:00"
+    }
+  ]
+}
+```
+
+#### 4.9.2 新增管理员
+
+**接口**：`POST /api/admin/admin-users`
+
+**请求体**：
+
+```json
+{
+  "username": "newadmin",
+  "password": "password123",
+  "confirmPassword": "password123"
+}
+```
+
+**响应 `data`**：
+
+```json
+{ "id": 2 }
+```
+
+#### 4.9.3 禁用/启用管理员
+
+**接口**：`POST /api/admin/admin-users/{id}/status`
+
+**请求体**：
+
+```json
+{
+  "status": 0 // 1=正常，0=禁用
+}
+```
+
+**响应 `data`**：无
+
+#### 4.9.4 重置密码
+
+**接口**：`POST /api/admin/admin-users/{id}/reset-password`
+
+**请求体**：
+
+```json
+{
+  "newPassword": "newpassword123",
+  "confirmPassword": "newpassword123"
+}
+```
+
+**响应 `data`**：无
+
+**说明**：重置指定管理员的密码。
+
+---
+
+### 4.10 操作日志查询（后台）
+
+**接口**：`GET /api/admin/operation-logs`
+
+**请求参数（Query）**：
+
+- `page`、`pageSize`
+- `adminId`：管理员 ID，可选
+- `targetType`：目标类型，可选（SHOP、CATEGORY、RECOMMEND、ADMIN_USER）
+- `action`：操作类型，可选（如 SHOP_CREATE、SHOP_UPDATE、SHOP_DELETE、SHOP_STATUS 等）
+- `startTime`：开始时间，可选（格式：yyyy-MM-dd HH:mm:ss）
+- `endTime`：结束时间，可选（格式：yyyy-MM-dd HH:mm:ss）
+
+**响应 `data`**：
+
+```json
+{
+  "total": 100,
+  "page": 1,
+  "pageSize": 10,
+  "list": [
+    {
+      "id": 1,
+      "adminId": 1,
+      "adminUsername": "admin",
+      "action": "SHOP_CREATE",
+      "actionDesc": "商家创建",
+      "targetType": "SHOP",
+      "targetId": 10,
+      "targetName": "校内麻辣烫",
+      "requestData": "{\"name\":\"校内麻辣烫\",\"categoryId\":1}",
+      "ip": "192.168.1.100",
+      "createTime": "2025-02-10 09:00:00"
+    }
+  ]
+}
+```
+
+**说明**：
+
+- 记录关键操作：商家创建/编辑/删除/上下架、分类创建/编辑/删除/禁用、推荐配置变更、管理员账号操作
+- 不记录：管理员登录/登出
+- 支持按管理员、时间范围、对象类型、操作类型筛选
+
+---
+
 ## 5. 操作日志（概要）
 
 > 详细字段见 `数据库设计.md` 中 `operation_log` 表设计。
 
-- 建议提供后台接口：`GET /api/admin/operation-logs`
-  - 支持按管理员、时间范围、对象类型（SHOP/CATEGORY/RECOMMEND）筛选；
-  - 分页返回最近操作，用于排查问题。
+- 操作日志查询接口已在上方 4.10 节详细定义
 - 写日志时机（示例）：
   - 商家创建/编辑/删除/上下架
   - 分类创建/编辑/删除/禁用
   - 每日推荐配置变更
+  - 管理员账号操作
 
 一期可同步写库；后续如需要可用 MQ 异步化日志写入。
 
 ---
 
-## 6. 后续详细设计可扩展部分
+## 6. DTO/VO 详细设计
+
+> 本节详细定义每个接口的请求 DTO 和响应 VO 类，包含字段类型、校验规则、说明等。
+
+### 6.1 鉴权模块 DTO/VO
+
+#### 6.1.1 小程序登录
+
+**请求 DTO**：`MpLoginRequest`
+
+```java
+package com.school.waimai.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class MpLoginRequest {
+    @NotBlank(message = "微信登录code不能为空")
+    private String code;
+
+    private String nickname;  // 可选，用户昵称
+
+    private String avatar;     // 可选，用户头像URL
+}
+```
+
+**响应 VO**：`MpLoginVO`
+
+```java
+package com.school.waimai.auth.dto;
+
+import lombok.Data;
+
+@Data
+public class MpLoginVO {
+    private String token;      // JWT token
+    private String expireAt;    // 过期时间，格式：yyyy-MM-dd HH:mm:ss
+}
+```
+
+#### 6.1.2 管理员登录
+
+**请求 DTO**：`AdminLoginRequest`
+
+```java
+package com.school.waimai.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class AdminLoginRequest {
+    @NotBlank(message = "用户名不能为空")
+    private String username;
+
+    @NotBlank(message = "密码不能为空")
+    private String password;
+}
+```
+
+**响应 VO**：`AdminLoginVO`
+
+```java
+package com.school.waimai.auth.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminLoginVO {
+    private String token;      // JWT token
+    private String expireAt;    // 过期时间，格式：yyyy-MM-dd HH:mm:ss
+}
+```
+
+#### 6.1.3 管理员注册
+
+**请求 DTO**：`AdminRegisterRequest`
+
+```java
+package com.school.waimai.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class AdminRegisterRequest {
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 3, max = 32, message = "用户名长度必须在3-32之间")
+    private String username;
+
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, max = 20, message = "密码长度必须在6-20之间")
+    private String password;
+
+    @NotBlank(message = "确认密码不能为空")
+    private String confirmPassword;
+}
+```
+
+**响应 VO**：无（返回空对象或 `IdVO`）
+
+---
+
+### 6.2 商家模块 DTO/VO
+
+#### 6.2.1 商家列表查询（小程序）
+
+**请求 DTO**：`MpShopListQuery`（Query 参数，可用 `@RequestParam` 或封装为 DTO）
+
+```java
+package com.school.waimai.shop.dto;
+
+import lombok.Data;
+
+@Data
+public class MpShopListQuery {
+    private Integer page = 1;           // 页码，默认1
+    private Integer pageSize = 10;      // 每页条数，默认10
+
+    private String platform;            // 平台枚举：MEITUAN, ELEME, JD, MINIPROGRAM_SELF, OTHER
+    private Long categoryId;            // 分类ID
+    private String sort = "updatedAt";  // 排序：updatedAt(默认), weight
+    private String keyword;             // 名称关键词（模糊匹配）
+}
+```
+
+**响应 VO**：`PageResult<MpShopListItemVO>`
+
+**列表项 VO**：`MpShopListItemVO`
+
+```java
+package com.school.waimai.shop.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class MpShopListItemVO {
+    private Long id;                    // 商家ID
+    private String name;                // 商家名称
+    private String introduction;        // 商家介绍（可选）
+    private List<String> platforms;      // 所属平台列表，如：["MEITUAN", "ELEME"]
+    private Long categoryId;            // 分类ID
+    private String categoryName;        // 分类名称
+    private String coverUrl;            // 封面图URL（可选）
+    private BigDecimal startingPrice;   // 起送价（可选）
+    private String deliveryFeeDesc;     // 配送费说明（可选）
+    private BigDecimal avgScore;        // 平均评分（可选，有评分时才有）
+    private Integer ratingCount;         // 评分人数（可选，有评分时才有）
+}
+```
+
+#### 6.2.2 商家详情（小程序）
+
+**请求 DTO**：无（路径参数 `id`）
+
+**响应 VO**：`MpShopDetailVO`
+
+```java
+package com.school.waimai.shop.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class MpShopDetailVO {
+    private Long id;
+    private String name;
+    private String introduction;
+    private Long categoryId;
+    private String categoryName;
+    private String coverUrl;
+    private String businessHours;       // 营业时间（可选）
+    private String deliveryScope;        // 配送范围说明（可选）
+    private BigDecimal startingPrice;    // 起送价（可选）
+    private String deliveryFeeDesc;      // 配送费说明（可选）
+    private Integer status;              // 状态：1=上架，0=下架
+
+    // 平台跳转链接列表
+    private List<PlatformLinkVO> platformLinks;
+
+    // 评分信息
+    private BigDecimal avgScore;         // 平均评分（可选）
+    private Integer ratingCount;         // 评分人数（可选）
+    private Integer userScore;           // 当前用户的评分，未评分则为null
+
+    // 收藏状态
+    private Boolean favorited;            // 当前用户是否已收藏
+    private Boolean canOrder;             // 是否可以下单（下架时为false）
+}
+
+// 平台链接 VO
+@Data
+class PlatformLinkVO {
+    private String platform;             // 平台枚举：MEITUAN, ELEME, JD, MINIPROGRAM_SELF, OTHER
+    private String type;                  // 链接类型：H5, MINI_PATH
+    private String url;                   // H5链接（type=H5时使用）
+    private String path;                  // 小程序path（type=MINI_PATH时使用）
+}
+```
+
+#### 6.2.3 商家列表查询（后台）
+
+**请求 DTO**：`AdminShopListQuery`
+
+```java
+package com.school.waimai.shop.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminShopListQuery {
+    private Integer page = 1;
+    private Integer pageSize = 10;
+
+    private String platform;            // 平台枚举
+    private Long categoryId;            // 分类ID
+    private Integer status;              // 状态：1=上架，0=下架
+    private String keyword;             // 名称关键词
+    private String sort;                // 排序：updatedAt, weight
+}
+```
+
+**响应 VO**：`PageResult<AdminShopListItemVO>`
+
+**列表项 VO**：`AdminShopListItemVO`
+
+```java
+package com.school.waimai.shop.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class AdminShopListItemVO {
+    private Long id;
+    private String name;
+    private String introduction;
+    private Long categoryId;
+    private String categoryName;
+    private String coverUrl;
+    private BigDecimal startingPrice;
+    private String deliveryFeeDesc;
+    private Integer sortWeight;          // 排序权重
+    private Integer status;              // 状态：1=上架，0=下架
+    private BigDecimal avgScore;         // 平均评分
+    private Integer ratingCount;          // 评分人数
+    private LocalDateTime createTime;     // 创建时间
+    private LocalDateTime updateTime;     // 更新时间
+}
+```
+
+#### 6.2.4 新增商家（后台）
+
+**请求 DTO**：`CreateShopRequest`
+
+```java
+package com.school.waimai.shop.dto;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class CreateShopRequest {
+    @NotBlank(message = "商家名称不能为空")
+    @Size(min = 2, max = 30, message = "商家名称长度必须在2-30之间")
+    private String name;
+
+    @Size(max = 200, message = "商家介绍长度不能超过200")
+    private String introduction;
+
+    @NotNull(message = "分类ID不能为空")
+    private Long categoryId;
+
+    private String coverUrl;             // 封面图URL（可选）
+
+    @Size(max = 128, message = "营业时间长度不能超过128")
+    private String businessHours;        // 营业时间（可选）
+
+    @Size(max = 128, message = "配送范围说明长度不能超过128")
+    private String deliveryScope;        // 配送范围说明（可选）
+
+    private BigDecimal startingPrice;    // 起送价（可选）
+
+    @Size(max = 64, message = "配送费说明长度不能超过64")
+    private String deliveryFeeDesc;      // 配送费说明（可选）
+
+    private Integer sortWeight = 0;       // 排序权重，默认0
+
+    @NotNull(message = "状态不能为空")
+    private Integer status;              // 状态：1=上架，0=下架
+
+    @Valid
+    @NotNull(message = "平台链接不能为空")
+    @Size(min = 1, message = "至少需要一个平台链接")
+    private List<PlatformLinkRequest> platformLinks;  // 平台链接列表
+
+    @Size(max = 255, message = "备注长度不能超过255")
+    private String remark;               // 后台备注（可选）
+}
+
+// 平台链接请求 DTO
+@Data
+class PlatformLinkRequest {
+    @NotBlank(message = "平台类型不能为空")
+    private String platform;            // 平台枚举：MEITUAN, ELEME, JD, MINIPROGRAM_SELF, OTHER
+
+    private String url;                 // H5链接（platform不为MINIPROGRAM_SELF时使用）
+    private String path;                // 小程序path（platform为MINIPROGRAM_SELF时使用）
+}
+```
+
+**响应 VO**：`IdVO`
+
+```java
+package com.school.waimai.common.api;
+
+import lombok.Data;
+
+@Data
+public class IdVO {
+    private Long id;
+}
+```
+
+#### 6.2.5 编辑商家（后台）
+
+**请求 DTO**：`UpdateShopRequest`（字段同 `CreateShopRequest`，所有字段可选）
+
+```java
+package com.school.waimai.shop.dto;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class UpdateShopRequest {
+    @Size(min = 2, max = 30, message = "商家名称长度必须在2-30之间")
+    private String name;
+
+    @Size(max = 200, message = "商家介绍长度不能超过200")
+    private String introduction;
+
+    private Long categoryId;
+    private String coverUrl;
+
+    @Size(max = 128)
+    private String businessHours;
+
+    @Size(max = 128)
+    private String deliveryScope;
+
+    private BigDecimal startingPrice;
+
+    @Size(max = 64)
+    private String deliveryFeeDesc;
+
+    private Integer sortWeight;
+    private Integer status;
+
+    @Valid
+    private List<PlatformLinkRequest> platformLinks;
+
+    @Size(max = 255)
+    private String remark;
+}
+```
+
+**响应 VO**：无（返回空对象）
+
+#### 6.2.6 商家上下架
+
+**请求 DTO**：`UpdateShopStatusRequest`
+
+```java
+package com.school.waimai.shop.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class UpdateShopStatusRequest {
+    @NotNull(message = "状态不能为空")
+    private Integer status;  // 1=上架，0=下架
+}
+```
+
+**响应 VO**：无（返回空对象）
+
+---
+
+### 6.3 分类模块 DTO/VO
+
+#### 6.3.1 分类列表（后台）
+
+**请求 DTO**：无
+
+**响应 VO**：`List<CategoryVO>`
+
+**分类 VO**：`CategoryVO`
+
+```java
+package com.school.waimai.category.dto;
+
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class CategoryVO {
+    private Long id;
+    private String name;
+    private String logoUrl;             // Logo URL（可选）
+    private Integer sortOrder;          // 排序值
+    private Integer status;             // 状态：1=启用，0=禁用
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+}
+```
+
+#### 6.3.2 新增分类（后台）
+
+**请求 DTO**：`CreateCategoryRequest`
+
+```java
+package com.school.waimai.category.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class CreateCategoryRequest {
+    @NotBlank(message = "分类名称不能为空")
+    @Size(max = 32, message = "分类名称长度不能超过32")
+    private String name;
+
+    @Size(max = 255, message = "Logo URL长度不能超过255")
+    private String logoUrl;            // Logo URL（可选）
+
+    @NotNull(message = "排序值不能为空")
+    private Integer sortOrder;         // 排序值
+
+    @NotNull(message = "状态不能为空")
+    private Integer status;            // 状态：1=启用，0=禁用
+}
+```
+
+**响应 VO**：`IdVO`
+
+#### 6.3.3 编辑分类（后台）
+
+**请求 DTO**：`UpdateCategoryRequest`（字段同 `CreateCategoryRequest`，所有字段可选）
+
+```java
+package com.school.waimai.category.dto;
+
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class UpdateCategoryRequest {
+    @Size(max = 32)
+    private String name;
+
+    @Size(max = 255)
+    private String logoUrl;
+
+    private Integer sortOrder;
+    private Integer status;
+}
+```
+
+**响应 VO**：无
+
+#### 6.3.4 分类状态更新
+
+**请求 DTO**：`UpdateCategoryStatusRequest`
+
+```java
+package com.school.waimai.category.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class UpdateCategoryStatusRequest {
+    @NotNull(message = "状态不能为空")
+    private Integer status;  // 1=启用，0=禁用
+}
+```
+
+**响应 VO**：无
+
+---
+
+### 6.4 推荐模块 DTO/VO
+
+#### 6.4.1 每日推荐（小程序）
+
+**请求 DTO**：无
+
+**响应 VO**：`DailyRecommendVO`
+
+```java
+package com.school.waimai.recommend.dto;
+
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class DailyRecommendVO {
+    private String date;                // 日期，格式：yyyy-MM-dd
+    private String mode;                 // 模式：MANUAL（手动）, RANDOM（随机）
+    private List<RecommendShopItemVO> list;  // 推荐商家列表
+}
+
+// 推荐商家项 VO
+@Data
+class RecommendShopItemVO {
+    private Long id;
+    private String name;
+    private String introduction;
+    private String categoryName;
+    private String coverUrl;
+    private java.math.BigDecimal startingPrice;
+    private String deliveryFeeDesc;
+    private java.math.BigDecimal avgScore;
+    private Integer ratingCount;
+}
+```
+
+#### 6.4.2 查询每日推荐配置（后台）
+
+**请求 DTO**：无
+
+**响应 VO**：`DailyRecommendConfigVO`
+
+```java
+package com.school.waimai.recommend.dto;
+
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class DailyRecommendConfigVO {
+    private String bizDate;             // 业务日期，格式：yyyy-MM-dd
+    private String mode;                 // 模式：MANUAL, RANDOM
+    private List<Long> manualShopIds;   // 手动模式下的商家ID列表（mode=MANUAL时使用）
+    private Integer randomCount;         // 随机模式每日展示数量（mode=RANDOM时使用，默认4）
+}
+```
+
+#### 6.4.3 保存每日推荐配置（后台）
+
+**请求 DTO**：`SaveDailyRecommendConfigRequest`
+
+```java
+package com.school.waimai.recommend.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class SaveDailyRecommendConfigRequest {
+    @NotBlank(message = "推荐模式不能为空")
+    private String mode;                 // MANUAL 或 RANDOM
+
+    private List<Long> manualShopIds;   // 手动模式下的商家ID列表（mode=MANUAL时必填）
+
+    @Min(value = 1, message = "随机数量至少为1")
+    private Integer randomCount;         // 随机模式每日展示数量（mode=RANDOM时必填，建议默认4）
+}
+```
+
+**响应 VO**：无
+
+---
+
+### 6.5 评分模块 DTO/VO
+
+#### 6.5.1 提交/更新评分（小程序）
+
+**请求 DTO**：`MpShopRatingRequest`
+
+```java
+package com.school.waimai.rating.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class MpShopRatingRequest {
+    @NotNull(message = "评分不能为空")
+    @Min(value = 1, message = "评分最小值为1")
+    @Max(value = 5, message = "评分最大值为5")
+    private Integer score;  // 1～5的整数
+}
+```
+
+**响应 VO**：`ShopRatingVO`
+
+```java
+package com.school.waimai.rating.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+
+@Data
+public class ShopRatingVO {
+    private BigDecimal avgScore;    // 更新后的平均评分
+    private Integer ratingCount;     // 评分人数（更新评分时不变）
+}
+```
+
+#### 6.5.2 评分统计查看（后台）
+
+**请求 DTO**：`AdminRatingStatsQuery`
+
+```java
+package com.school.waimai.rating.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminRatingStatsQuery {
+    private Integer page = 1;
+    private Integer pageSize = 10;
+
+    private Long categoryId;         // 分类ID（可选）
+    private Integer status;          // 商家状态：1=上架，0=下架（可选）
+    private String keyword;          // 商家名称关键词（可选）
+}
+```
+
+**响应 VO**：`PageResult<RatingStatsItemVO>`
+
+**统计项 VO**：`RatingStatsItemVO`
+
+```java
+package com.school.waimai.rating.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class RatingStatsItemVO {
+    private Long shopId;             // 商家ID
+    private String name;              // 商家名称
+    private String categoryName;      // 分类名称
+    private BigDecimal avgScore;      // 平均评分
+    private Integer ratingCount;      // 评分人数
+    private LocalDateTime lastRatingTime;  // 最近评分时间（可选）
+}
+```
+
+---
+
+### 6.6 收藏模块 DTO/VO
+
+#### 6.6.1 收藏/取消收藏（小程序）
+
+**请求 DTO**：无（路径参数 `shopId`）
+
+**响应 VO**：`FavoriteStatusVO`
+
+```java
+package com.school.waimai.favorite.dto;
+
+import lombok.Data;
+
+@Data
+public class FavoriteStatusVO {
+    private Boolean favorited;  // true=已收藏，false=未收藏
+}
+```
+
+#### 6.6.2 我的收藏列表（小程序）
+
+**请求 DTO**：`FavoriteListQuery`
+
+```java
+package com.school.waimai.favorite.dto;
+
+import lombok.Data;
+
+@Data
+public class FavoriteListQuery {
+    private Integer page = 1;
+    private Integer pageSize = 10;
+}
+```
+
+**响应 VO**：`PageResult<FavoriteShopItemVO>`
+
+**收藏项 VO**：`FavoriteShopItemVO`
+
+```java
+package com.school.waimai.favorite.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class FavoriteShopItemVO {
+    private Long shopId;              // 商家ID
+    private String name;               // 商家名称
+    private String introduction;       // 商家介绍
+    private String categoryName;       // 分类名称
+    private String coverUrl;           // 封面图URL
+    private BigDecimal startingPrice;  // 起送价（可选）
+    private String deliveryFeeDesc;    // 配送费说明（可选）
+    private BigDecimal avgScore;       // 平均评分（可选）
+    private Integer ratingCount;       // 评分人数（可选）
+    private LocalDateTime favoritedAt;  // 收藏时间
+    private Integer status;             // 商家状态：1=上架，0=下架
+    private Boolean canOrder;          // 是否可以下单（下架时为false）
+    private String statusLabel;        // 状态标签（下架时为"已下架"，上架时为null）
+}
+```
+
+---
+
+### 6.7 通用 VO
+
+#### 6.7.1 IdVO（返回ID）
+
+```java
+package com.school.waimai.common.api;
+
+import lombok.Data;
+
+@Data
+public class IdVO {
+    private Long id;
+}
+```
+
+#### 6.7.2 PageResult（分页结果）
+
+已在 `common.api` 包中定义，见项目结构说明。
+
+---
+
+### 6.8 枚举类型
+
+#### 6.8.1 平台枚举
+
+```java
+package com.school.waimai.common.enums;
+
+public enum PlatformType {
+    MEITUAN("美团"),
+    ELEME("饿了么"),
+    JD("京东"),
+    MINIPROGRAM_SELF("小程序自营"),
+    OTHER("其他");
+
+    private final String desc;
+
+    PlatformType(String desc) {
+        this.desc = desc;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+}
+```
+
+#### 6.8.2 链接类型枚举
+
+```java
+package com.school.waimai.common.enums;
+
+public enum LinkType {
+    H5("H5链接"),
+    MINI_PATH("小程序路径");
+
+    private final String desc;
+
+    LinkType(String desc) {
+        this.desc = desc;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+}
+```
+
+#### 6.8.3 推荐模式枚举
+
+```java
+package com.school.waimai.common.enums;
+
+public enum RecommendMode {
+    MANUAL("手动"),
+    RANDOM("随机");
+
+    private final String desc;
+
+    RecommendMode(String desc) {
+        this.desc = desc;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+}
+```
+
+---
+
+## 7. 后续详细设计可扩展部分
 
 本文件为 API 级详细设计，后续如有需要可扩展：
 
-- DTO/VO/Entity 类设计（字段、校验规则、映射关系）
+- Entity 类设计（字段、映射关系）
 - 典型业务流程的时序图（已在《概要设计》中给出示例）
 - 错误码表（code 与业务含义的完整清单）
 - 安全细节（防刷、防重放、限流规则等）

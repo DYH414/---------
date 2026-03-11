@@ -4,10 +4,13 @@ spring:
 
   # 数据源配置
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/waimai?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=Asia/Shanghai
+    driver-class-name:
+      com.mysql.cj.jdbc.Driver
+      # characterEncoding 用 UTF-8（Java 标准名）；utf8mb4 会导致 JDK 报 Unsupported character encoding
+    url: jdbc:mysql://localhost:3306/waimai?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: root
+    # 密码若为纯数字或含 :#@ 等符号，建议加引号，避免 YAML 把 041213 当数字（如八进制）解析
+    password: "041213"
 
   # Redis 配置
   data:
