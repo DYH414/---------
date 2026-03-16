@@ -90,7 +90,9 @@
 ```json
 {
   "username": "admin",
-  "password": "plaintext-or-hash-by-protocol"
+  "password": "plaintext",
+  "captchaId": "可选（当登录失败次数达到阈值后必填）",
+  "captchaCode": "可选（当登录失败次数达到阈值后必填）"
 }
 ```
 
@@ -99,11 +101,174 @@
 ```json
 {
   "token": "jwt-string",
-  "expireAt": "2025-02-10 12:00:00"
+  "expireAt": "2025-02-10 12:00:00",
+  "refreshToken": "refresh-token-string",
+  "refreshExpireAt": "2025-03-12 12:00:00"
 }
 ```
 
 ---
+
+### 2.3 管理员注册（补齐）
+
+> 说明：当前文档 DTO/VO 中已存在 `AdminRegisterRequest`，但接口清单未定义。本节补齐接口与返回结构。
+>
+> **推荐策略**（默认）：后台不开放公网自助注册，仅允许“已登录管理员”创建新管理员账号（对应已存在的 `POST /api/admin/admin-users`）。
+> 若你确实需要“后台登录页自助注册”，请采用下面接口并配合验证码/注册开关/限流。
+
+#### 2.3.1 自助注册（启用）
+
+**接口**：`POST /api/admin/auth/register`
+
+**请求**
+
+```json
+{
+  "username": "newadmin",
+  "password": "password123",
+  "confirmPassword": "password123",
+  "captchaId": "必填",
+  "captchaCode": "必填"
+}
+```
+
+**响应 `data`**（建议返回 id）
+
+```json
+{ "id": 2 }
+```
+
+**错误码建议**
+
+- `4091`：用户名已存在
+- `4002`：两次密码不一致
+- `4291`：操作过于频繁（触发限流/防刷）
+- `4012`：验证码错误/过期
+- `4032`：注册已关闭（注册开关关闭）
+
+---
+
+### 2.4 管理员登出（补齐）
+
+**接口**：`POST /api/admin/auth/logout`（需登录）
+
+**说明**：
+
+- 本项目要求 **“登出立即失效”**：服务端需让当前 accessToken 与 refreshToken 立刻不可用。
+- 本项目采用：**Redis token blacklist（基于 `jti`）**：
+  - JWT 载荷中包含 `jti`（随机唯一 ID）
+  - 登出时把当前 accessToken 的 `jti` 写入 Redis 黑名单，TTL=token 剩余有效期
+  - 鉴权时除验签/过期外，还需检查 `jti` 是否命中黑名单；命中则返回 `4014`
+  - refreshToken 建议存 Redis（或 DB），登出时删除/撤销该管理员当前 refreshToken（返回 `4014`）
+
+**请求体**：无或空 JSON  
+**响应 `data`**：无（空对象）
+
+---
+
+### 2.5 刷新 Token（补齐，推荐）
+
+**接口**：`POST /api/admin/auth/refresh`（需登录或携带 refreshToken）
+
+**说明**：用于延长后台登录态（需求里提到后台会话超时 24 小时）。本项目采用 **accessToken + refreshToken**。
+
+#### 方案 A（推荐）：accessToken + refreshToken
+
+**请求**
+
+```json
+{
+  "refreshToken": "refresh-token-string"
+}
+```
+
+**响应 `data`**
+
+```json
+{
+  "token": "new-jwt-string",
+  "expireAt": "2025-02-10 12:00:00",
+  "refreshToken": "new-refresh-token-string",
+  "refreshExpireAt": "2025-03-12 12:00:00"
+}
+```
+
+**错误码建议**
+
+- `4013`：refreshToken 无效/过期
+- `4014`：refreshToken 已被撤销（登出/改密/禁用/重置密码后）
+- `4033`：管理员已禁用（即使 refreshToken 仍存在也不可刷新）
+
+---
+
+### 2.6 获取当前管理员信息（补齐）
+
+**接口**：`GET /api/admin/auth/me`（需登录）
+
+**说明**：后台前端启动时用来拉取登录信息（用户名、id、状态等），避免仅靠本地 token。
+
+**响应 `data`**
+
+```json
+{
+  "id": 1,
+  "username": "admin",
+  "status": 1,
+  "lastLoginTime": "2025-02-10 09:00:00"
+}
+```
+
+---
+
+### 2.7 修改自己的密码（补齐）
+
+**接口**：`POST /api/admin/auth/change-password`（需登录）
+
+**请求**
+
+```json
+{
+  "oldPassword": "oldpass",
+  "newPassword": "newpass123",
+  "confirmPassword": "newpass123"
+}
+```
+
+**响应 `data`**：无（空对象）
+
+**错误码建议**
+
+- `4002`：两次新密码不一致
+- `4031`：旧密码错误
+- `4014`：已下线（token 已失效，需要重新登录）
+
+---
+
+### 2.8 图形验证码（可选，建议用于登录/注册）
+
+> 本项目策略：
+>
+> - **注册**：强制验证码（必填）。
+> - **登录**：默认不需要；当“同一账号”或“同一 IP”任一在窗口期内连续失败 **≥3 次** 后，登录接口要求填写验证码（两者都算，任一触发即要求）。
+> - **限流**：对 `login/register/captcha/refresh` 做 IP+账号维度限流（建议使用 Redis 滑动窗口/令牌桶）。
+
+#### 2.8.1 获取验证码
+
+**接口**：`GET /api/admin/auth/captcha`
+
+**响应 `data`**
+
+```json
+{
+  "captchaId": "uuid",
+  "imageBase64": "data:image/png;base64,xxxx",
+  "expireAt": "2025-02-10 12:00:00"
+}
+```
+
+**错误码建议**
+
+- `4291`：获取过于频繁（触发限流）
 
 ## 3. 小程序端业务接口（前缀统一为 `/api/mp`）
 
@@ -744,6 +909,54 @@
 
 ---
 
+### 4.11 系统参数（后台，可配置注册开关）（补齐）
+
+> 说明：用于在后台管理界面配置系统开关与参数（如“管理员自助注册开关”）。
+
+#### 4.11.1 查询系统参数列表
+
+**接口**：`GET /api/admin/system-config`
+
+**请求参数（Query）**：
+
+- `keyword`：按 key/名称模糊搜索（可选）
+
+**响应 `data`**：
+
+```json
+[
+  {
+    "key": "ADMIN_REGISTER_ENABLED",
+    "name": "管理员自助注册开关",
+    "value": "true",
+    "valueType": "BOOLEAN",
+    "remark": "关闭后 /api/admin/auth/register 返回 4032",
+    "updateTime": "2025-02-10 09:00:00"
+  }
+]
+```
+
+#### 4.11.2 更新系统参数
+
+**接口**：`PUT /api/admin/system-config/{key}`
+
+**请求体**：
+
+```json
+{
+  "value": "false"
+}
+```
+
+**响应 `data`**：无（空对象）
+
+**错误码建议**
+
+- `4041`：参数 key 不存在
+- `4003`：参数值格式不合法（如期望 BOOLEAN 但传了非 true/false）
+
+---
+
 ## 5. 操作日志（概要）
 
 > 详细字段见 `数据库设计.md` 中 `operation_log` 表设计。
@@ -817,6 +1030,10 @@ public class AdminLoginRequest {
 
     @NotBlank(message = "密码不能为空")
     private String password;
+
+    // 登录失败次数达到阈值后才要求填写
+    private String captchaId;
+    private String captchaCode;
 }
 ```
 
@@ -831,6 +1048,10 @@ import lombok.Data;
 public class AdminLoginVO {
     private String token;      // JWT token
     private String expireAt;    // 过期时间，格式：yyyy-MM-dd HH:mm:ss
+
+    // refresh token（本项目采用 accessToken + refreshToken）
+    private String refreshToken;
+    private String refreshExpireAt;
 }
 ```
 
@@ -857,12 +1078,153 @@ public class AdminRegisterRequest {
 
     @NotBlank(message = "确认密码不能为空")
     private String confirmPassword;
+
+    @NotBlank(message = "captchaId不能为空")
+    private String captchaId;
+
+    @NotBlank(message = "captchaCode不能为空")
+    private String captchaCode;
 }
 ```
 
 **响应 VO**：无（返回空对象或 `IdVO`）
 
 ---
+
+#### 6.1.4 管理员登出
+
+**请求 DTO**：无  
+**响应 VO**：无
+
+---
+
+#### 6.1.5 刷新 Token
+
+> 说明：若采用“accessToken + refreshToken”方案，补齐以下 DTO/VO；若不采用，可忽略本小节。
+
+**请求 DTO**：`AdminRefreshTokenRequest`
+
+```java
+package com.school.waimai.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class AdminRefreshTokenRequest {
+    @NotBlank(message = "refreshToken不能为空")
+    private String refreshToken;
+}
+```
+
+**响应 VO**：`AdminRefreshTokenVO`
+
+```java
+package com.school.waimai.auth.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminRefreshTokenVO {
+    private String token;              // 新JWT
+    private String expireAt;           // JWT过期时间
+    private String refreshToken;       // 新refreshToken
+    private String refreshExpireAt;    // refreshToken过期时间
+}
+```
+
+---
+
+#### 6.1.6 当前管理员信息（Me）
+
+**请求 DTO**：无  
+**响应 VO**：`AdminMeVO`
+
+```java
+package com.school.waimai.auth.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminMeVO {
+    private Long id;
+    private String username;
+    private Integer status;        // 1=正常，0=禁用
+    private String lastLoginTime;  // yyyy-MM-dd HH:mm:ss，可为空
+}
+```
+
+---
+
+#### 6.1.7 修改自己的密码
+
+**请求 DTO**：`AdminChangePasswordRequest`
+
+```java
+package com.school.waimai.auth.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class AdminChangePasswordRequest {
+    @NotBlank(message = "旧密码不能为空")
+    private String oldPassword;
+
+    @NotBlank(message = "新密码不能为空")
+    @Size(min = 6, max = 20, message = "密码长度必须在6-20之间")
+    private String newPassword;
+
+    @NotBlank(message = "确认密码不能为空")
+    private String confirmPassword;
+}
+```
+
+**响应 VO**：无
+
+---
+
+#### 6.1.8 图形验证码
+
+**请求 DTO**：无  
+**响应 VO**：`AdminCaptchaVO`
+
+```java
+package com.school.waimai.auth.dto;
+
+import lombok.Data;
+
+@Data
+public class AdminCaptchaVO {
+    private String captchaId;
+    private String imageBase64;  // data:image/png;base64,xxxx
+    private String expireAt;     // yyyy-MM-dd HH:mm:ss
+}
+```
+
+---
+
+### 6.9 系统参数模块 DTO/VO（补齐）
+
+#### 6.9.1 更新系统参数
+
+**请求 DTO**：`UpdateSystemConfigRequest`
+
+```java
+package com.school.waimai.system.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class UpdateSystemConfigRequest {
+    @NotBlank(message = "value不能为空")
+    private String value;
+}
+```
+
+**响应 VO**：无
 
 ### 6.2 商家模块 DTO/VO
 
