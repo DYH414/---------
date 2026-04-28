@@ -52,7 +52,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((_to, _from, next) => {
   // TODO: 实现登录校验逻辑
   next()
 })

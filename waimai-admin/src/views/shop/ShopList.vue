@@ -7,7 +7,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getShopList } from '@/api/shop'
 
 const loading = ref(false)
 const data = ref([])
